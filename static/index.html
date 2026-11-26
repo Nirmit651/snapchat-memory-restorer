@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f8f7f2">
+  <title>Snapchat Memory Restore</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Snapchat Memory Restore home"><span class="brand-mark">S</span><span>Memory Restore</span></a>
+    <div class="local-status"><span class="local-dot"></span>Runs locally on this computer</div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div class="eyebrow">YOUR MEMORIES, BACK IN PLACE</div>
+      <h1>Restore your<br><span>Snapchat Memories.</span></h1>
+      <p class="lead">Bring your exported photos and videos back together, with captions, dates, and details restored where the export provides them.</p>
+    </section>
+
+    <section id="workspace" class="workspace" aria-label="Memory restoration">
+      <div class="work-main">
+        <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Choose or drop Snapchat export ZIP files">
+          <input id="file-input" type="file" accept=".zip,application/zip" multiple hidden>
+          <div class="upload-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 15.5v3A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h2>Drop your export ZIP files here</h2>
+          <p>Choose one or more Snapchat My Data archives</p>
+          <button id="browse" class="browse-button" type="button">Browse files</button>
+          <div class="zip-note">ZIP archives · processed on this device</div>
+        </div>
+
+        <div id="selected-section" class="selected-section" hidden>
+          <div class="list-heading"><h2>Selected archives</h2><span id="file-total"></span></div>
+          <ul id="file-list" class="file-list"></ul>
+          <button id="start" class="primary-button" type="button" disabled><span>Start restoration</span><span aria-hidden="true">↗</span></button>
+        </div>
+
+        <section id="progress-section" class="progress-section" hidden aria-live="polite">
+          <div class="progress-top"><div><div class="eyebrow" id="stage">Preparing archives</div><h2 id="progress-title">Restoration in progress</h2></div><span id="percent" class="percent">0%</span></div>
+          <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+          <div class="progress-meta"><span id="processed">0 of 0 memories</span><span id="remaining">Estimating time…</span></div>
+          <div id="upload-notice" class="upload-notice" hidden>Securely moving archive files to the local processor… <span id="upload-percent">0%</span></div>
+          <div id="error-message" class="error-message" hidden></div>
+        </section>
+
+        <section id="result-section" class="result-section" hidden aria-live="polite">
+          <div class="result-heading"><span class="check-mark">✓</span><div><div class="eyebrow">RESTORATION COMPLETE</div><h2>Your memories are ready.</h2></div></div>
+          <p id="result-note" class="result-note"></p>
+          <a id="download" class="primary-button download-button" href="#"><span>Download restored ZIP</span><span aria-hidden="true">↓</span></a>
+          <button id="again" class="text-button" type="button">Start another restoration</button>
+        </section>
+      </div>
+
+      <aside class="details">
+        <div class="details-top"><span class="eyebrow">RESTORATION</span><span class="details-icon">✳</span></div>
+        <h2>One tidy archive.<br>Ready for your phone.</h2>
+        <p>Memories are processed in order. Captions are composited onto their matching photos and videos.</p>
+        <div class="detail-rule"></div>
+        <div class="detail-row"><span>Photos &amp; videos</span><span>Included</span></div>
+        <div class="detail-row"><span>Capture dates</span><span>From export data</span></div>
+        <div class="detail-row"><span>Duplicates</span><span>Detected</span></div>
+        <div id="summary" class="summary" hidden>
+          <div class="detail-rule"></div>
+          <div class="eyebrow">RESTORATION SUMMARY</div>
+          <div class="summary-grid">
+            <div><strong id="sum-restored">0</strong><span>restored</span></div>
+            <div><strong id="sum-photos">0</strong><span>photos</span></div>
+            <div><strong id="sum-videos">0</strong><span>videos</span></div>
+            <div><strong id="sum-overlays">0</strong><span>overlays merged</span></div>
+            <div><strong id="sum-timestamps">0</strong><span>timestamps</span></div>
+            <div><strong id="sum-duplicates">0</strong><span>duplicates</span></div>
+            <div><strong id="sum-possible">0</strong><span>matching files kept</span></div>
+            <div><strong id="sum-missing-media">0</strong><span>index only</span></div>
+            <div><strong id="sum-failed">0</strong><span>failures</span></div>
+            <div><strong id="sum-gps">0</strong><span>GPS restored</span></div>
+            <div><strong id="sum-incomplete">0</strong><span>missing exact times</span></div>
+          </div>
+          <div id="failure-list" class="failure-list" hidden></div>
+        </div>
+        <div class="privacy-note"><span>◉</span><p>Your files never leave this computer. No account, no cloud upload.</p></div>
+      </aside>
+    </section>
+    <footer><span>Snapchat Memory Restore</span><span>Private by design · Open source</span></footer>
+  </main>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
