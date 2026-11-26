@@ -83,10 +83,17 @@ class RestoreTests(unittest.TestCase):
             self.assertEqual(result["counts"]["restored"],1)
             self.assertEqual(result["counts"]["duplicates"],1)
             self.assertEqual(result["counts"]["overlays"],1)
+            previews=result["photo_previews"]
+            self.assertEqual(len(previews),1)
+            self.assertTrue(previews[0]["overlay"])
+            preview_dir=app.DATA/job_id/"previews"/previews[0]["id"]
+            self.assertEqual({path.name for path in preview_dir.iterdir()},{"before.jpg","overlay.png","after.jpg"})
+            self.assertLess(sum(path.stat().st_size for path in preview_dir.iterdir()),150_000)
             with zipfile.ZipFile(app.DATA/job_id/"restored-memories.zip") as z:
                 names=z.namelist()
                 self.assertEqual(len([name for name in names if name.endswith(".jpg")]),1)
                 self.assertIn("RESTORATION-REPORT.txt",names)
+                self.assertFalse(any("preview" in name.lower() for name in names))
             shutil.rmtree(app.DATA/job_id,ignore_errors=True); app.JOBS.pop(job_id,None)
 
     def test_same_pixels_with_different_memory_ids_are_kept(self):

@@ -151,6 +151,36 @@ def restore_photo(src: Path, overlay: Path | None, dest: Path,
     return bool(old_stamp or timestamp)
 
 
+def save_photo_preview(src: Path, overlay: Path | None, restored: Path, target: Path) -> None:
+    """Write small, metadata-free visual steps for the local progress wall."""
+    target.mkdir(parents=True, exist_ok=True)
+    with Image.open(src) as image:
+        orientation = image.getexif().get(274, 1)
+        base = ImageOps.exif_transpose(image).convert("RGBA")
+    layer = Image.new("RGBA", base.size)
+    if overlay:
+        with Image.open(overlay) as image:
+            layer = image.convert("RGBA")
+        if orientation == 3: layer = layer.rotate(180, expand=True)
+        elif orientation == 6: layer = layer.rotate(270, expand=True)
+        elif orientation == 8: layer = layer.rotate(90, expand=True)
+        if layer.size != base.size:
+            scale = min(base.width/layer.width, base.height/layer.height)
+            layer = layer.resize((round(layer.width*scale), round(layer.height*scale)), Image.Resampling.LANCZOS)
+            canvas = Image.new("RGBA", base.size)
+            canvas.alpha_composite(layer, ((base.width-layer.width)//2, (base.height-layer.height)//2))
+            layer = canvas
+    size = (480, 480)
+    base.thumbnail(size, Image.Resampling.LANCZOS)
+    layer.thumbnail(size, Image.Resampling.LANCZOS)
+    with Image.open(restored) as image:
+        after = ImageOps.exif_transpose(image).convert("RGB")
+        after.thumbnail(size, Image.Resampling.LANCZOS)
+    base.convert("RGB").save(target / "before.jpg", "JPEG", quality=78, optimize=True)
+    layer.save(target / "overlay.png", "PNG", optimize=True)
+    after.save(target / "after.jpg", "JPEG", quality=78, optimize=True)
+
+
 def restore_video(src: Path, overlay: Path | None, dest: Path,
                   timestamp: datetime | None, gps: tuple[float, float] | None) -> tuple[bool, bool]:
     old_stamp, audio = probe_video(src)
@@ -212,7 +242,7 @@ def run_restore(job_id: str, archives: list[Path]) -> None:
         overlays = {id(z): {m.group(1): i for i in infos if (m := OVERLAY_RE.match(PurePosixPath(i.filename).name))}
                     for _,z,infos in opened}
         update(job_id, stage="Restoring memories", total=total, percent=0)
-        seen = set(); seen_content = set(); used_names = set()
+        seen = set(); seen_content = set(); used_names = set(); preview_ids: list[tuple[str, bool]] = []
         with zipfile.ZipFile(output_path, "w", allowZip64=True, compression=zipfile.ZIP_STORED) as out:
             for archive,z,info,day,ident,ext in media:
                 type_name = "image" if ext.lower() in ("jpg", "jpeg") else "video"
@@ -256,6 +286,17 @@ def run_restore(job_id: str, archives: list[Path]) -> None:
                         if stamp:
                             local = stamp.astimezone().timestamp(); os.utime(dest, (local, local))
                         out.write(dest, output_name); counts["restored"] += 1
+                        if type_name == "image":
+                            preview_id = uuid.uuid4().hex
+                            try:
+                                save_photo_preview(src, ov, dest, run_dir / "previews" / preview_id)
+                                preview_ids.append((preview_id, bool(ov)))
+                                if len(preview_ids) > 12:
+                                    expired, _ = preview_ids.pop(0)
+                                    shutil.rmtree(run_dir / "previews" / expired, ignore_errors=True)
+                                update(job_id, photo_previews=[{"id": item, "overlay": has_overlay} for item, has_overlay in preview_ids])
+                            except Exception:
+                                shutil.rmtree(run_dir / "previews" / preview_id, ignore_errors=True)
                 except Exception as exc:
                     counts["failed"] += 1
                     failures.append(f"{PurePosixPath(info.filename).name}: {str(exc)[:200] or type(exc).__name__}")
@@ -309,7 +350,7 @@ def create_job() -> dict[str,str]:
         for key in stale: JOBS.pop(key, None)
     for key in stale: shutil.rmtree(DATA/key, ignore_errors=True)
     job_id = uuid.uuid4().hex; (DATA/job_id/"uploads").mkdir(parents=True)
-    with LOCK: JOBS[job_id] = {"status":"created","stage":"Waiting for ZIP files","percent":0,"processed":0,"total":0,"counts":{}}
+    with LOCK: JOBS[job_id] = {"status":"created","stage":"Waiting for ZIP files","percent":0,"processed":0,"total":0,"counts":{},"photo_previews":[]}
     return {"id":job_id}
 
 
@@ -354,6 +395,19 @@ def status(job_id: str) -> dict[str,Any]:
     with LOCK: result=JOBS.get(job_id)
     if not result: raise HTTPException(404,"Restoration session not found")
     return result
+
+
+@app.get("/api/jobs/{job_id}/previews/{preview_id}/{kind}")
+def photo_preview(job_id: str, preview_id: str, kind: str) -> FileResponse:
+    if not re.fullmatch(r"[a-f0-9]{32}", job_id) or not re.fullmatch(r"[a-f0-9]{32}", preview_id):
+        raise HTTPException(404, "Preview not found")
+    if kind not in ("before.jpg", "overlay.png", "after.jpg"):
+        raise HTTPException(404, "Preview not found")
+    path = DATA / job_id / "previews" / preview_id / kind
+    if job_id not in JOBS or not path.is_file():
+        raise HTTPException(404, "Preview not found")
+    media_type = "image/png" if kind.endswith(".png") else "image/jpeg"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/api/jobs/{job_id}/download")
