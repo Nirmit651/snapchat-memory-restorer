@@ -2,6 +2,8 @@
 
 A local web app for restoring media exported with Snapchat's **My Data** tool. Drop one or more export ZIP files into the page, review the result, then download one archive for your phone.
 
+> **Hosted demo (may be offline):** [Open the temporary Vercel preview](https://snap-memory-verceldehd9x-c544d08dw-nirmit651s-projects.vercel.app). It may no longer be available later and may require Vercel access. ZIP files submitted to the hosted demo are sent to Vercel for processing. For private exports, run the app locally by following the instructions below; files then stay on your computer.
+
 ## What it restores
 
 Snapchat exports can separate a memory's original media (`*-main.jpg` or `*-main.mp4`) from its transparent caption and drawing layer (`*-overlay.png`). They can also include a `Saved Media` JSON index with date and location fields. This app pairs matching main and overlay names, composites overlays into the media, preserves embedded capture timestamps, and uses index timestamps and GPS only when one memory can be matched unambiguously by date and media type. The archives inspected for this project contained the media directly; their download URL fields were empty.
@@ -74,7 +76,7 @@ Transfer `restored-memories.zip` to your phone, extract it with the Android File
 
 ## Privacy
 
-All restoration runs on the computer where this app is started. The app binds to loopback (`127.0.0.1`), and media is not uploaded to Snapchat, Google, or another server. Uploaded working copies and temporary files are stored under the ignored `data/` folder and removed after processing; the resulting ZIP remains there until you start another restoration or restart the server. Original export archives are never modified by the app. Do not add personal exports, restored media, logs, or metadata files to Git.
+When run locally, restoration runs on the computer where this app is started. The app binds to loopback (`127.0.0.1`), and media is not uploaded to Snapchat, Google, or another server. Uploaded working copies and temporary files are stored under the ignored `data/` folder and removed after processing; the resulting ZIP remains there until you start another restoration or restart the server. The hosted Vercel preview is different: files selected there are uploaded to Vercel for processing. Use the local setup above for private exports. Original export archives are never modified by the app. Do not add personal exports, restored media, logs, or metadata files to Git.
 
 ## Troubleshooting
 
