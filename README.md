@@ -2,7 +2,7 @@
 
 A local web app for restoring media exported with Snapchat's **My Data** tool. Drop one or more export ZIP files into the page, review the result, then download one archive for your phone.
 
-> **Hosted demo (may be offline):** [Open the temporary Vercel preview](https://snap-memory-verceldehd9x-9ngagy4zi-nirmit651s-projects.vercel.app). It may no longer be available later and may require Vercel access. This is a size-limited preview; ZIPs are sent to Vercel for processing. Do not use it for private or large exports. Run the app locally by following the instructions below to keep files on your computer.
+> **Hosted demo (may be offline):** [Open the temporary Vercel preview](https://snap-memory-verceldehd9x-nz9m2ht8l-nirmit651s-projects.vercel.app). It may no longer be available later and may require Vercel access. This is a size-limited preview; ZIPs are sent to Vercel for processing. Do not use it for private or large exports. Run the app locally by following the instructions below to keep files on your computer.
 
 ## What it restores
 
