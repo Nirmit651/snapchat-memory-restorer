@@ -23,11 +23,12 @@ from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps
 
 ROOT = Path(__file__).parent.resolve()
-DATA = ROOT / "data" / "runs"
+DATA = Path(tempfile.gettempdir()) / "snapchat-memory-restore" / "runs" if os.getenv("VERCEL") else ROOT / "data" / "runs"
 STATIC = ROOT / "static"
 DATA.mkdir(parents=True, exist_ok=True)
-for stale_run in DATA.iterdir():
-    if stale_run.is_dir(): shutil.rmtree(stale_run, ignore_errors=True)
+if not os.getenv("VERCEL"):
+    for stale_run in DATA.iterdir():
+        if stale_run.is_dir(): shutil.rmtree(stale_run, ignore_errors=True)
 app = FastAPI(title="Snapchat Memory Restore")
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 JOBS: dict[str, dict[str, Any]] = {}
